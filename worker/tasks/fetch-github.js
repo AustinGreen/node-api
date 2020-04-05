@@ -6,8 +6,14 @@ const client = redis.createClient();
 const baseUrl = "https://jobs.github.com/positions.json";
 const generateUrl = (n) => `${baseUrl}?page=${n + 1}`;
 
-const getAsync = promisify(client.get).bind(client);
 const setAsync = promisify(client.set).bind(client);
+
+const filterJobs = (jobs) =>
+  jobs.filter(
+    (job) =>
+      job.title.toLowerCase().includes("lead") ||
+      job.title.toLowerCase().includes("senior")
+  );
 
 async function fetchGithub(jobs = [], pageNum = 1) {
   await Promise.all([
@@ -18,9 +24,10 @@ async function fetchGithub(jobs = [], pageNum = 1) {
     axios(generateUrl(pageNum + 4)),
   ]).then((values) => {
     const newJobs = values.reduce((acc, curr) => [...acc, ...curr.data], jobs);
+    const filteredJobs = filterJobs(newJobs);
     if (values[4].data.length === 0) {
-      setAsync('github', JSON.stringify(newJobs));
-      return newJobs;
+      setAsync("github", JSON.stringify(filteredJobs));
+      return filteredJobs;
     }
     return fetchGithub(newJobs, pageNum + 5);
   });
