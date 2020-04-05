@@ -1,10 +1,10 @@
-var axios = require("axios");
-var redis = require("redis");
-var { promisify } = require("util");
+import axios from "axios";
+import redis from "redis";
+import { promisify } from "util";
+import 'dotenv/config';
 
 const client = redis.createClient();
-const baseUrl = "https://jobs.github.com/positions.json";
-const generateUrl = (n) => `${baseUrl}?page=${n + 1}`;
+const generateUrl = n => `${process.env.BASE_URL}?page=${n + 1}`;
 
 const setAsync = promisify(client.set).bind(client);
 
@@ -33,4 +33,4 @@ async function fetchGithub(jobs = [], pageNum = 1) {
   });
 }
 
-module.exports = fetchGithub;
+export default fetchGithub;
